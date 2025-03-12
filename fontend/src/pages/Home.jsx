@@ -1,51 +1,59 @@
 import MovieCard from "../components/MovieCard";
-import { useState } from "react";
-import "../css/Home.css"
+import { useState, useEffect } from "react";
+import { searchMovies, getPopularMovies } from "../services/api";
+import "../css/Home.css";
+
 function Home() {
-  // creation of new state 
-    const[searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const loadPopularMovies = async () => {
+      try {
+        const popularMovies = await getPopularMovies();
+        console.log("Fetched popular movies:", popularMovies); // Debugging line
+        setMovies(popularMovies);
+      } catch (err) {
+        console.log(err);
+        setError("Failed to load movies...");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    loadPopularMovies();
+  }, []);
 
-  const movies = [
-    { id: 1, title: "Jhon Wick", releaseDate: "2020" },
-    { id: 2, title: "Jhon Wick 2", releaseDate: "2022" },
-    { id: 3, title: "Jhon Wick 3", releaseDate: "2024" },
-    { id: 4, title: "Iron Man", releaseDate: "2008" },
-    { id: 5, title: "Thor 1", releaseDate: "2008" },
-    { id: 6, title: "Iron Man 2", releaseDate: "2012" },
-  ];
-
-
-
-  const handelSearch = (e) => {
-    e.preventDefault()
-    
-    alert(searchQuery)
-    setSearchQuery("")
+  const handleSearch = (e) => {
+    e.preventDefault();
+    alert(searchQuery);
+    setSearchQuery("");
   };
-
-
-
 
   return (
     <div className="home">
-      <form action="" onSubmit={handelSearch} className="search-form">
+      <form action="" onSubmit={handleSearch} className="search-form">
         <input
           type="text"
-          placeholder="seach for movies ...."
+          placeholder="Search for movies..."
           className="search-input"
-          // adding dynamic change for states 
           value={searchQuery}
-          //updating the state for the inpo=ut element
-          onChange={(e) => setSearchQuery(e.target.value)} 
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button type="sumbit"  className="search -button">Search</button>
+        <button type="submit" className="search-button">Search</button>
       </form>
       <div className="movies-grid">
-        {movies.map((movie) => (
-          movie.title.toLowerCase().startsWith(searchQuery)&& (<MovieCard movie={movie} key={movie.id} />)
-        ))}
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          movies.map((movie) => (
+            <MovieCard movie={movie} key={movie.id} />
+          ))
+        )}
       </div>
     </div>
   );
